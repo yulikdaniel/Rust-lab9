@@ -5,7 +5,7 @@ use std::io::{self, BufRead};
 use std::sync::mpsc::channel;
 use std::thread;
 use std::time::{Duration, Instant};
-use clap::{arg, command, value_parser, ArgAction, Command};
+use clap::{arg, command, value_parser};
 
 fn load_file(name: &str) -> Result<Vec<String>, io::Error> {
     io::BufReader::new(File::open(name)?).lines().collect()
@@ -23,10 +23,10 @@ fn count_chars<S: AsRef<str>>(input: &[S]) -> HashMap<char, usize> {
 
 fn count_chars_parallel<S: AsRef<str> + Sync>(input: &[S], n: usize) -> HashMap<char, usize> {
     let (sender, receiver) = channel();
-    let BLCKSZ = (input.len() + n - 1) / n;
+    let blcksz = (input.len() + n - 1) / n;
     let mut counter = HashMap::<char, usize>::new();
     thread::scope(|s| {
-        for chunk in input.chunks(BLCKSZ) {
+        for chunk in input.chunks(blcksz) {
             let sender = sender.clone();
             s.spawn(move || {
                 let counter = count_chars(chunk);
